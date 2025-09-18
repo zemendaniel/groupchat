@@ -15,6 +15,7 @@ public class Chat
     private IPAddress ip;
     private IPAddress mask;
     private IPAddress broadcast;
+    private StringBuilder inputBuffer;
 
     public Chat()
     {
@@ -30,6 +31,7 @@ public class Chat
         client = new UdpClient(port);
         cts = new CancellationTokenSource();
         token = cts.Token;
+        inputBuffer = new StringBuilder();
         
         (ip, mask, broadcast) = NetUtils.GetEthernetNetworkInfo();
         
@@ -44,47 +46,74 @@ public class Chat
             var result = await client.ReceiveAsync(token);
             if (Equals(result.RemoteEndPoint.Address, ip))
                 continue;
-            
+
             var json = Encoding.UTF8.GetString(result.Buffer);
             var msgObj = JsonSerializer.Deserialize<Message>(json);
-            
             if (msgObj == null)
                 continue;
             
             var currentLine = Console.CursorTop;
-            var currentCol = Console.CursorLeft;
+            Console.SetCursorPosition(0, currentLine);
+            Console.Write(new string(' ', Console.WindowWidth)); 
+            Console.SetCursorPosition(0, currentLine);
             
-            Console.SetCursorPosition(0, Console.CursorTop);
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"[{msgObj.Sender}]: {msgObj.Msg}");
             Console.ResetColor();
             
-            Console.Write(">>> ");
-            Console.SetCursorPosition(4, Console.CursorTop); 
+            Console.Write(">>> " + inputBuffer);
         }
     }
     
     private async Task SendAsync()
     {
         Console.Clear();
+        const string inputPromptString = ">>> ";
         while (!token.IsCancellationRequested)
         {
-            Console.Write(">>> ");
-            var msg = Console.ReadLine();
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write(inputPromptString + inputBuffer);
 
-            if (msg!.Equals("/exit", StringComparison.CurrentCultureIgnoreCase))
+            var key = Console.ReadKey(intercept: true);
+
+            if (key.Key == ConsoleKey.Backspace)
             {
-                await cts.CancelAsync();
-                break;
+                if (inputBuffer.Length > 0)
+                {
+                    inputBuffer.Remove(inputBuffer.Length - 1, 1);
+                    Console.SetCursorPosition(inputPromptString.Length, Console.CursorTop);
+                    Console.Write(inputBuffer + " ");
+                    Console.SetCursorPosition(inputPromptString.Length + inputBuffer.Length, Console.CursorTop);
+                }
             }
-            else if (msg.Length == 0)
-                continue;
+            else if (key.Key == ConsoleKey.Enter)
+            {
+                var msg = inputBuffer.ToString();
+                inputBuffer.Clear();
+                Console.WriteLine();
 
-            var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
-            var data = Encoding.UTF8.GetBytes(json);
-            await client.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, port));
+                if (msg.Equals("/exit", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    await cts.CancelAsync();
+                    break;
+                }
+
+                if (msg.Length == 0)
+                    continue;
+
+                var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
+                var data = Encoding.UTF8.GetBytes(json);
+                await client.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, port));
+            }
+            else
+            {
+                inputBuffer.Append(key.KeyChar);
+                Console.SetCursorPosition(4, Console.CursorTop);
+                Console.Write(inputBuffer);
+            }
         }
     }
+
 }
 
 internal class Message
