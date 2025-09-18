@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -8,6 +9,7 @@ using groupchat.core;
 
 namespace groupchat.gui;
 
+// todo: save last nic and last key to file, do symmetric encryption, check for already running process
 
 public partial class MainWindow : Window
 {
@@ -22,16 +24,14 @@ public partial class MainWindow : Window
         var adapters = NetUtils.GetEthernetAdapters();
         AdapterComboBox.ItemsSource = adapters;
         AdapterComboBox.SelectedIndex = 0; 
+        
+        Closing += async (s, e) =>
+        {
+            if (chat == null) return;
+            await chat.Dispose();
+        };
     }
     
-    private async void Send_Click(object? sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(InputBox.Text)) return;
-        var msg = InputBox.Text.Trim();
-        await chat!.SendAsync(msg);   
-        InputBox.Text = "";
-    }
-
     private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
         var nickname = NicknameBox.Text?.Trim();
@@ -50,10 +50,29 @@ public partial class MainWindow : Window
         chat = new Chat(
             (message, type) => Dispatcher.UIThread.Post(() =>
             {
-                messages.Add(new ChatMessage { Text = message, Type = type });
+                AddMessage(message, type);
             }),
             nickname, broadcast!, ip!
         );
+    }
+
+    private void AddMessage(string message, MessageType type)
+    {
+        var isAtBottom = MessagesScrollViewer.Offset.Y + MessagesScrollViewer.Viewport.Height >= 
+                          MessagesScrollViewer.Extent.Height - 1; // small tolerance
+
+        messages.Add(new ChatMessage { Text = message, Type = type });
+
+        if (isAtBottom || type == MessageType.Own)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                MessagesScrollViewer.Offset = new Avalonia.Vector(
+                    MessagesScrollViewer.Offset.X,
+                    MessagesScrollViewer.Extent.Height - MessagesScrollViewer.Viewport.Height
+                );
+            }, DispatcherPriority.Render); 
+        }
     }
     private void TitleBar_PointerPressed(object sender, PointerPressedEventArgs e)
     {
@@ -66,6 +85,25 @@ public partial class MainWindow : Window
     {
         WindowState = WindowState.Minimized;
     }
+
+    private void InputBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (chat == null) 
+            return;
+        if (e.Key != Key.Enter)
+            return;
+        if (string.IsNullOrWhiteSpace(InputBox.Text)) return;
+        
+        var msg = InputBox.Text.Trim();
+        _ = chat.SendAsync(msg);   
+        InputBox.Text = "";
+    }
+
+    private void NicknameBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+            StartChat_Click(sender, e);
+    }
 }
 
 public class ChatMessage
@@ -75,9 +113,9 @@ public class ChatMessage
     
     public IBrush Color => Type switch
     {
-        MessageType.Own => Brushes.Cyan,
-        MessageType.Remote => Brushes.LimeGreen,
-        MessageType.Info => Brushes.LightGray,
-        _ => Brushes.White
+        MessageType.Own => Brushes.CadetBlue,      // subtle but readable blue
+        MessageType.Remote => Brushes.DarkSeaGreen, // muted green
+        MessageType.Info => Brushes.LightSlateGray, // readable gray
+        _ => Brushes.White                          // default white
     };
 }

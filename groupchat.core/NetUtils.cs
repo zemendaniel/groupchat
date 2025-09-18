@@ -22,7 +22,7 @@ public static class NetUtils
 
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
         {
-            if (ni.NetworkInterfaceType != NetworkInterfaceType.Ethernet ||
+            if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
                 ni.OperationalStatus != OperationalStatus.Up)
                 continue;
 
