@@ -18,6 +18,7 @@ public class Chat
 
     public Chat()
     {
+        Console.Clear();
         Console.Write("Enter your name: ");
         while (true)
         {
@@ -50,21 +51,34 @@ public class Chat
             if (msgObj == null)
                 continue;
             
+            var currentLine = Console.CursorTop;
+            var currentCol = Console.CursorLeft;
+            
+            Console.SetCursorPosition(0, Console.CursorTop);
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"[{msgObj.Sender}]: {msgObj.Msg}");
             Console.ResetColor();
-            Console.Write(">>> "); 
+            
+            Console.Write(">>> ");
+            Console.SetCursorPosition(4, Console.CursorTop); 
         }
     }
     
     private async Task SendAsync()
     {
+        Console.Clear();
         while (!token.IsCancellationRequested)
         {
             Console.Write(">>> ");
             var msg = Console.ReadLine();
-            
-            if (msg!.Equals("/exit", StringComparison.CurrentCultureIgnoreCase)) break;
+
+            if (msg!.Equals("/exit", StringComparison.CurrentCultureIgnoreCase))
+            {
+                await cts.CancelAsync();
+                break;
+            }
+            else if (msg.Length == 0)
+                continue;
 
             var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
             var data = Encoding.UTF8.GetBytes(json);
