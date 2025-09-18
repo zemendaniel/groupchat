@@ -16,8 +16,10 @@ public class AdapterInfo
 
 public static class NetUtils
 {
-    public static (IPAddress ip, IPAddress mask, IPAddress broadcast) GetEthernetNetworkInfo()
+    public static List<AdapterInfo> GetEthernetAdapters()
     {
+        var list = new List<AdapterInfo>();
+
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (ni.NetworkInterfaceType != NetworkInterfaceType.Ethernet ||
@@ -27,21 +29,27 @@ public static class NetUtils
             foreach (var info in ni.GetIPProperties().UnicastAddresses)
             {
                 if (info.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+
                 var ip = info.Address;
                 var mask = info.IPv4Mask;
-
                 var ipBytes = ip.GetAddressBytes();
                 var maskBytes = mask.GetAddressBytes();
                 var broadcastBytes = new byte[4];
-
                 for (var i = 0; i < 4; i++)
                     broadcastBytes[i] = (byte)(ipBytes[i] | (maskBytes[i] ^ 255));
-
                 var broadcast = new IPAddress(broadcastBytes);
-                return (ip, mask, broadcast);
+
+                list.Add(new AdapterInfo
+                {
+                    Name = ni.Name,
+                    Description = ni.Description,
+                    IP = ip,
+                    Mask = mask,
+                    Broadcast = broadcast
+                });
             }
         }
 
-        throw new Exception("Could not determine IP address.");
+        return list;
     }
 }

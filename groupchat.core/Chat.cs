@@ -22,12 +22,11 @@ public class Chat
     private CancellationTokenSource cts;
     private CancellationToken token;
     private IPAddress ip;
-    private IPAddress mask;
     private IPAddress broadcast;
     private StringBuilder inputBuffer;
     private ReceiveDelegate receiveCallback;
     
-    public Chat(ReceiveDelegate receiveCallback, string name)
+    public Chat(ReceiveDelegate receiveCallback, string name, IPAddress broadcast, IPAddress ip)
     {
         this.receiveCallback = receiveCallback;
         this.name = name;
@@ -36,10 +35,11 @@ public class Chat
         cts = new CancellationTokenSource();
         token = cts.Token;
         inputBuffer = new StringBuilder();
+        this.broadcast = broadcast;
+        this.ip = ip;
         
-        (ip, mask, broadcast) = NetUtils.GetEthernetNetworkInfo();
-        Console.WriteLine($"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}");
-        receiveCallback(FormatMessage("info", $"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}"), MessageType.Info);
+        // Console.WriteLine($"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}");
+        // receiveCallback(FormatMessage("info", $"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}"), MessageType.Info);
         
         _ = Task.Run(ReceiveAsync, token);
     }
@@ -75,7 +75,8 @@ public class Chat
         var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
         var data = Encoding.UTF8.GetBytes(json);
         receiveCallback(FormatMessage(name, msg), MessageType.Own);
-        await client.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, port));
+        Console.WriteLine();
+        await client.SendAsync(data, data.Length, new IPEndPoint(broadcast, port));
     }
 
     public async Task Dispose()

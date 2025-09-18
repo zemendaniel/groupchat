@@ -20,17 +20,11 @@ public partial class MainWindow : Window
         InitializeComponent();
         
         MessagesList.ItemsSource = messages;
+        var adapters = NetUtils.GetEthernetAdapters();
+        AdapterComboBox.ItemsSource = adapters;
+        AdapterComboBox.SelectedIndex = 0; 
     }
-
-    public void Init(string nickname)
-    {
-        chat = new Chat(
-            (message, type) => Dispatcher.UIThread.Post(() =>
-            {
-                messages.Add(new ChatMessage { Text = message, Type = type });
-            }), nickname); 
-    }
-
+    
     private async void Send_Click(object? sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(InputBox.Text)) return;
@@ -39,13 +33,19 @@ public partial class MainWindow : Window
         InputBox.Text = "";
     }
 
-    private void LoginButton_Click(object? sender, RoutedEventArgs e)
+    private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
         var nickname = NicknameBox.Text?.Trim();
         if (string.IsNullOrWhiteSpace(nickname))
             return;
+
+        if (AdapterComboBox.SelectedItem is not AdapterInfo selectedAdapter)
+            return;
+
+        var ip = selectedAdapter.IP;
+        var broadcast = selectedAdapter.Broadcast;
         
-        LoginPanel.IsVisible = false;
+        StartupPanel.IsVisible = false;
         ChatPanel.IsVisible = true;
         
         chat = new Chat(
@@ -53,7 +53,7 @@ public partial class MainWindow : Window
             {
                 messages.Add(new ChatMessage { Text = message, Type = type });
             }),
-            nickname
+            nickname, broadcast!, ip!
         );
     }
 }
