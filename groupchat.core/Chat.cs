@@ -6,8 +6,13 @@ using System.Text.Json;
 
 namespace groupchat.core;
 
-public delegate void ReceiveDelegate(string message, Color color);
-public delegate string SendDelegate();
+public enum MessageType
+{
+    Own,
+    Remote,
+    Info
+}
+public delegate void ReceiveDelegate(string message, MessageType type);
 
 public class Chat
 {
@@ -21,12 +26,10 @@ public class Chat
     private IPAddress broadcast;
     private StringBuilder inputBuffer;
     private ReceiveDelegate receiveCallback;
-    private SendDelegate sendCallback;
     
-    public Chat(ReceiveDelegate receiveCallback, SendDelegate sendCallback, string name)
+    public Chat(ReceiveDelegate receiveCallback, string name)
     {
         this.receiveCallback = receiveCallback;
-        this.sendCallback = sendCallback;
         this.name = name;
         
         client = new UdpClient(port);
@@ -35,10 +38,10 @@ public class Chat
         inputBuffer = new StringBuilder();
         
         (ip, mask, broadcast) = NetUtils.GetEthernetNetworkInfo();
-        receiveCallback(FormatMessage("info", $"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}"), Color.DarkBlue);;
+        Console.WriteLine($"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}");
+        receiveCallback(FormatMessage("info", $"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}"), MessageType.Info);
         
         _ = Task.Run(ReceiveAsync, token);
-        _ = Task.Run(SendAsync, token);
     }
     
     private static string FormatMessage(string sender, string message)
@@ -59,26 +62,20 @@ public class Chat
             if (msgObj == null)
                 continue;
             
-            receiveCallback(FormatMessage(msgObj.Sender, msgObj.Msg), Color.DarkGreen);
+            receiveCallback(FormatMessage(msgObj.Sender, msgObj.Msg), MessageType.Remote);
             
         }
     }
     
-    private async Task SendAsync()
+    public async Task SendAsync(string msg)
     {
-        while (!token.IsCancellationRequested)
-        {
-            var msg = sendCallback();
-            
-            if (msg.Length == 0)
-                continue;
-            
-            var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
-            var data = Encoding.UTF8.GetBytes(json);
-            receiveCallback(FormatMessage(name, msg), Color.DarkKhaki);
-            await client.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, port));
-            
-        }
+        if (msg.Length == 0)
+            return;
+        
+        var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
+        var data = Encoding.UTF8.GetBytes(json);
+        receiveCallback(FormatMessage(name, msg), MessageType.Own);
+        await client.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, port));
     }
 
     public async Task Dispose()

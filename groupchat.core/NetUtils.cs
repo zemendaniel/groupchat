@@ -4,6 +4,16 @@ using System.Net.Sockets;
 
 namespace groupchat.core;
 
+public class AdapterInfo
+{
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    public IPAddress? IP { get; set; }
+    public IPAddress? Mask { get; set; }
+    public IPAddress? Broadcast { get; set; }
+    public override string ToString() => $"{Name} ({Description}) - {IP}";
+}
+
 public static class NetUtils
 {
     public static (IPAddress ip, IPAddress mask, IPAddress broadcast) GetEthernetNetworkInfo()

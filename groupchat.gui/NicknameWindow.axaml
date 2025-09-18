@@ -1,0 +1,10 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="groupchat.gui.NicknameWindow"
+        Title="Please enter your name" Width="300" Height="150" WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="10">
+        <TextBlock Text="What is your name?"/>
+        <TextBox x:Name="NicknameBox" Margin="0,5,0,5" MaxLength="32"/>
+        <Button Content="OK" HorizontalAlignment="Right" Click="Button_OnClick"/>
+    </StackPanel>
+</Window>
