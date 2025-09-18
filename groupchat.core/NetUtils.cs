@@ -2,7 +2,7 @@
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
-namespace groupchat;
+namespace groupchat.core;
 
 public static class NetUtils
 {
