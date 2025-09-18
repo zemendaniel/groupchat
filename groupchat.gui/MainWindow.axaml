@@ -2,11 +2,78 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:gui="clr-namespace:groupchat.gui"
         x:Class="groupchat.gui.MainWindow"
-        Width="400" Height="600"
-        FontFamily="{StaticResource SpaceMonoFont}"
+        Width="800" Height="600"
         Title="Group Chat"
         Background="Black"
-        SystemDecorations="Full">
+        SystemDecorations="None"
+        CanResize="True"
+        FontFamily="{StaticResource SpaceMonoFont}">
+
+    <Grid RowDefinitions="Auto,*">
+        <Border Background="#222" Height="30" PointerPressed="TitleBar_PointerPressed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Group Chat" VerticalAlignment="Center" Margin="6"
+                           Foreground="White" FontWeight="DemiBold"/>
+
+                <!-- Minimize button -->
+                <Button Grid.Column="1" Width="28" Height="28" 
+                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                        Background="Transparent" BorderBrush="Transparent"
+                        Click="MinimizeButtonClick" FontWeight="Bold">
+                    <TextBlock Text="-" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                               FontSize="16" Foreground="White"/>
+                    <Button.Styles>
+                        <Style Selector="Button:hover">
+                            <Setter Property="Background" Value="#444"/> 
+                        </Style>
+                    </Button.Styles>
+                </Button>
+                <Button Grid.Column="2" Width="28" Height="28"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                        Background="Transparent" BorderBrush="Transparent"
+                        Click="MinimizeButtonClick">
+                    <TextBlock Text="X" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                               FontSize="16" Foreground="White" FontWeight="Bold"/>
+                    <Button.Styles>
+                        <Style Selector="Button:hover">
+                            <Setter Property="Background" Value="#444"/> 
+                        </Style>
+                    </Button.Styles>
+                </Button>
+                
+            </Grid>
+        </Border>
+
+        <!-- Main content -->
+        <Grid Grid.Row="1">
+            <!-- Startup Panel -->
+            <StackPanel x:Name="StartupPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+                <TextBlock Text="Enter your nickname:" Foreground="White"/>
+                <TextBox x:Name="NicknameBox" Width="200" Margin="0,5" Background="Black" Foreground="White"/>
+                
+                <TextBlock Text="Select network adapter:" Margin="0,10,0,0" Foreground="White"/>
+                <ComboBox x:Name="AdapterComboBox" Width="300" Background="Black" Foreground="White"/>
+                
+                <Button Content="Start Chat" Click="StartChat_Click" Margin="0,10,0,0"/>
+            </StackPanel>
+            
+            <!-- Chat Panel -->
+            <StackPanel x:Name="ChatPanel" IsVisible="False" Margin="10">
+                <ListBox x:Name="MessagesList" Height="450" Background="Black" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBox x:Name="InputBox" Width="300" Background="Black" Foreground="White"/>
+                    <Button Content="Send" Click="Send_Click" Margin="5,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
+
     <Window.DataTemplates>
         <DataTemplate DataType="{x:Type gui:ChatMessage}">
             <StackPanel Margin="2">
@@ -14,25 +81,4 @@
             </StackPanel>
         </DataTemplate>
     </Window.DataTemplates>
-    <Grid>
-        <!-- Startup Panel -->
-        <StackPanel x:Name="StartupPanel" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Enter your nickname:"/>
-            <TextBox x:Name="NicknameBox" Width="200" Margin="0,5"/>
-            
-            <TextBlock Text="Select network adapter:" Margin="0,10,0,0"/>
-            <ComboBox x:Name="AdapterComboBox" Width="300"/>
-            
-            <Button Content="Start Chat" Click="StartChat_Click" Margin="0,10,0,0"/>
-        </StackPanel>
-        
-        <!-- Chat Panel -->
-        <StackPanel x:Name="ChatPanel" IsVisible="False">
-            <ListBox x:Name="MessagesList" Height="500"/>
-            <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="InputBox" Width="300"/>
-                <Button Content="Send" Click="Send_Click"/>
-            </StackPanel>
-        </StackPanel>
-    </Grid>
 </Window>

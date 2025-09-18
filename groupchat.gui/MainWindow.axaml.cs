@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -54,6 +55,17 @@ public partial class MainWindow : Window
             nickname, broadcast!, ip!
         );
     }
+    private void TitleBar_PointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
+    }
+    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void MinimizeButtonClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
 }
 
 public class ChatMessage
@@ -63,9 +75,9 @@ public class ChatMessage
     
     public IBrush Color => Type switch
     {
-        MessageType.Own => Brushes.Blue,
-        MessageType.Remote => Brushes.Green,
-        MessageType.Info => Brushes.Gray,
+        MessageType.Own => Brushes.Cyan,
+        MessageType.Remote => Brushes.LimeGreen,
+        MessageType.Info => Brushes.LightGray,
         _ => Brushes.White
     };
 }
