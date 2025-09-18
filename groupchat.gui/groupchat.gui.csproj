@@ -23,4 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\groupchat.core\groupchat.core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\Fonts\SpaceMono-*.ttf"/>
+</ItemGroup>
 </Project>

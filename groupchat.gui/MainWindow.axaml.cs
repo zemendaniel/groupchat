@@ -1,6 +1,4 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -12,7 +10,7 @@ namespace groupchat.gui;
 
 public partial class MainWindow : Window
 {
-    private Chat chat;
+    private Chat? chat;
     private readonly ObservableCollection<ChatMessage> messages = [];
     
     public MainWindow()
@@ -29,7 +27,7 @@ public partial class MainWindow : Window
     {
         if (string.IsNullOrWhiteSpace(InputBox.Text)) return;
         var msg = InputBox.Text.Trim();
-        await chat.SendAsync(msg);   
+        await chat!.SendAsync(msg);   
         InputBox.Text = "";
     }
 
