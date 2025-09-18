@@ -20,6 +20,10 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         
+        NicknameBox.AttachedToVisualTree += (s, e) =>
+        {
+            NicknameBox.Focus();
+        };
         MessagesList.ItemsSource = messages;
         var adapters = NetUtils.GetEthernetAdapters();
         AdapterComboBox.ItemsSource = adapters;
@@ -54,6 +58,7 @@ public partial class MainWindow : Window
             }),
             nickname, broadcast!, ip!
         );
+        InputBox.Focus();
     }
 
     private void AddMessage(string message, MessageType type)

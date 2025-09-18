@@ -5,10 +5,14 @@
     
     <Application.Styles>
         <FluentTheme/>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
     </Application.Styles>
     
     <Application.Resources>
         <FontFamily x:Key="SpaceMonoFont">avares://groupchat.gui/Assets/Fonts/#Space Mono</FontFamily>
     </Application.Resources>
-
+    
 </Application>
