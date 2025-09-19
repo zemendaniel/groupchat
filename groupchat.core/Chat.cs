@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -17,6 +16,7 @@ public delegate void ReceiveDelegate(string message, MessageType type);
 public class Chat
 {
     private string name;
+    private int port;
     private static UdpClient client;
     private CancellationTokenSource cts;
     private CancellationToken token;
@@ -24,10 +24,20 @@ public class Chat
     private IPAddress broadcast;
     private ReceiveDelegate receiveCallback;
 
-    public static int Port { get; } = 29999;
-    
-    public Chat(ReceiveDelegate receiveCallback, string name, IPAddress broadcast, IPAddress ip)
+    public int Port
     {
+        private init
+        {
+            if (value < 1 || value > 65535)
+                throw new ArgumentOutOfRangeException(value.ToString());
+            port = value;
+        }
+        get => port;
+    }
+    
+    public Chat(ReceiveDelegate receiveCallback, string name, IPAddress broadcast, IPAddress ip, int port = 29999)
+    {
+        Port = port;
         this.receiveCallback = receiveCallback;
         this.name = name;
         client = new UdpClient(Port);

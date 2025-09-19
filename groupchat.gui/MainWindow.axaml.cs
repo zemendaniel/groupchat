@@ -46,6 +46,17 @@ public partial class MainWindow : Window
             return;
         }
 
+        int port;
+        if (PortSelector.Value.HasValue)
+        {
+            port = (int)PortSelector.Value.Value;
+            
+        }
+        else
+        {
+            ErrorText.Text = "[ERROR] Port is not set."; // todo here 
+        }
+
         if (AdapterComboBox.SelectedItem is not AdapterInfo selectedAdapter)
             return;
 
@@ -56,12 +67,12 @@ public partial class MainWindow : Window
         {
             chat = new Chat(
                 (message, type) => Dispatcher.UIThread.Post(() => { AddMessage(message, type); }),
-                nickname, broadcast!, ip!
+                nickname, broadcast!, ip!, port
             );
         }
         catch (SocketException ex) when (ex.ErrorCode == 10048) // port already used
         {
-            ErrorText.Text = $"[ERROR] Port {Chat.Port} is already in use. Have you already started the application?";
+            ErrorText.Text = $"[ERROR] Port {port} is already in use. Have you already started the application?";
             return;
         }
         
@@ -119,6 +130,7 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter)
             StartChat_Click(sender, e);
     }
+    
 }
 
 public class ChatMessage

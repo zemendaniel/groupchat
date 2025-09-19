@@ -50,69 +50,84 @@
         <!-- Main content -->
         <Grid Grid.Row="1">
             <!-- Startup Panel -->
-            <Grid VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="StartupPanel"
-                  RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+            <StackPanel x:Name="StartupPanel"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Width="800"
+            Margin="20"
+            Background="Transparent">
 
-                <!-- Nickname label -->
-                <TextBlock Grid.Row="0"
-                           Text="Enter your nickname:"
+            <!-- Nickname label -->
+            <TextBlock Text="Enter your nickname:"
+                       Foreground="White"
+                       Margin="5"
+                       HorizontalAlignment="Center"/>
+
+            <!-- Nickname input -->
+            <TextBox x:Name="NicknameBox"
+                     HorizontalContentAlignment="Center"
+                     MaxLength="32"
+                     Width="310"
+                     Margin="0,5,0,30"
+                     Background="Black"
+                     Foreground="White"
+                     HorizontalAlignment="Stretch"
+                     KeyDown="NicknameBox_OnKeyDown"/>
+
+            <!-- Network adapter label -->
+            <TextBlock Text="Select network adapter:"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,10"
+                       Foreground="White"/>
+
+            <!-- Adapter ComboBox -->
+            <ComboBox x:Name="AdapterComboBox"
+                      Width="750"
+                      Background="Black"
+                      Foreground="White"
+                      HorizontalContentAlignment="Center"
+                      HorizontalAlignment="Center">
+                <ComboBox.Styles>
+                    <Style Selector="ComboBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    </Style>
+                </ComboBox.Styles>
+            </ComboBox>
+
+            <!-- Spacer for visual separation -->
+            <TextBlock Text="Select port" Margin="10" Foreground="White" HorizontalAlignment="Center"/>
+
+            <!-- Port selector -->
+            <NumericUpDown x:Name="PortSelector"
+                           Minimum="1"
+                           Maximum="65535"
+                           Value="29999"
+                           Increment="1"
+                           Width="135"
+                           HorizontalContentAlignment="Center"
+                           HorizontalAlignment="Center"
                            Foreground="White"
-                           Margin="5"
-                           HorizontalAlignment="Center"/>
-
-                <!-- Nickname input -->
-                <TextBox x:Name="NicknameBox"
-                         Grid.Row="1"
-                         HorizontalContentAlignment="Center"
-                         MaxLength="32"
-                         Width="310"
-                         Margin="0, 5, 0, 30"
-                         Background="Black"
-                         Foreground="White"
-                         HorizontalAlignment="Stretch"
-                         KeyDown="NicknameBox_OnKeyDown"/>
-
-                <!-- Network adapter label -->
-                <TextBlock Grid.Row="2"
-                           Text="Select network adapter:"
-                           HorizontalAlignment="Center"
-                           Margin="0, 0, 0, 10"
-                           Foreground="White"/>
-
-                <!-- Adapter ComboBox -->
-                <ComboBox x:Name="AdapterComboBox"
-                          Grid.Row="3"
-                          Width="750"
-                          Background="Black"
-                          Foreground="White"
-                          HorizontalContentAlignment="Center">
-                    <ComboBox.HorizontalAlignment>Center</ComboBox.HorizontalAlignment>
-                    <ComboBox.Styles>
-                        <Style Selector="ComboBoxItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                        </Style>
-                    </ComboBox.Styles>
-                </ComboBox>
-
-                <!-- Start button -->
-                <Button Grid.Row="4"
-                        Content="Start Chat"
-                        Click="StartChat_Click"
-                        HorizontalAlignment="Center"
-                        Margin="0,20,0,0"/>
-
-                <!-- Error message -->
-                <TextBlock x:Name="ErrorText"
-                           Grid.Row="5"
-                           Foreground="DarkRed"
-                           HorizontalAlignment="Center"
-                           TextAlignment="Center"
-                           Margin="0, 15, 0, 0"
-                           FontSize="16"
-                           MaxWidth="750"
-                           TextWrapping="Wrap"
+                           FormatString="0"
                            />
-            </Grid>
+
+
+            <!-- Start button -->
+            <Button Content="Start Chat"
+                    Click="StartChat_Click"
+                    HorizontalAlignment="Center"
+                    Margin="0,20,0,0"/>
+
+            <!-- Error message -->
+            <TextBlock x:Name="ErrorText"
+                       Foreground="DarkRed"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       Margin="0,15,0,0"
+                       FontSize="16"
+                       MaxWidth="750"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
             
             <!-- Main panel (chat) -->
             <Grid x:Name="ChatPanel" Margin="0,0,0,5" IsVisible="False" RowDefinitions="*,Auto">
