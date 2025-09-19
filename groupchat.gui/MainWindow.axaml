@@ -113,6 +113,7 @@
 
             <!-- Start button -->
             <Button Content="Start Chat"
+                    x:Name="StartChatButton"
                     Click="StartChat_Click"
                     HorizontalAlignment="Center"
                     Margin="0,20,0,0"/>

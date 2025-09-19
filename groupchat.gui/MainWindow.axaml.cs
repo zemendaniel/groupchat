@@ -1,5 +1,10 @@
+using System;
+using System.Linq;
+using System.Text.Json;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -9,7 +14,7 @@ using groupchat.core;
 
 namespace groupchat.gui;
 
-// todo: save last nic and last key to file, do symmetric encryption
+// todo: last key to file, do symmetric encryption
 
 public partial class MainWindow : Window
 {
@@ -19,22 +24,31 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        
-        NicknameBox.AttachedToVisualTree += (s, e) =>
-        {
-            NicknameBox.Focus();
-        };
-        MessagesList.ItemsSource = messages;
+
+        var config = DataStore.Load();
         var adapters = NetUtils.GetEthernetAdapters();
+
+        NicknameBox.Text = config.Nickname;
+        PortSelector.Value = config.Port == 0 ? 29999 : config.Port;
+        AdapterComboBox.SelectedItem = adapters.FirstOrDefault(a => a.MAC.ToString() == config.MAC) 
+                                       ?? adapters.FirstOrDefault();
+
+        MessagesList.ItemsSource = messages;
         AdapterComboBox.ItemsSource = adapters;
-        AdapterComboBox.SelectedIndex = 0; 
-        
+
         Closing += async (s, e) =>
         {
             if (chat == null) return;
             await chat.Dispose();
         };
+
+        Opened += (_, _) =>
+        {
+            NicknameBox.Focus();
+            NicknameBox.CaretIndex = NicknameBox.Text?.Length ?? 0;
+        };
     }
+
     
     private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
@@ -45,23 +59,32 @@ public partial class MainWindow : Window
             ErrorText.Text = "[ERROR] Nickname is empty.";
             return;
         }
-
-        int port;
-        if (PortSelector.Value.HasValue)
+        
+        if (PortSelector.Value == null)
         {
-            port = (int)PortSelector.Value.Value;
-            
-        }
-        else
-        {
-            ErrorText.Text = "[ERROR] Port is not set."; // todo here 
+            ErrorText.Text = "[ERROR] Port is not set.";
+            return;
         }
 
+        var port = (int)PortSelector.Value;
+        if (port < 1 || port > 65535)
+        {
+            ErrorText.Text = "[ERROR] Port is not in valid range (1-65535).";
+        }
+        
         if (AdapterComboBox.SelectedItem is not AdapterInfo selectedAdapter)
             return;
 
         var ip = selectedAdapter.IP;
         var broadcast = selectedAdapter.Broadcast;
+        
+        var mac = selectedAdapter.MAC; 
+        DataStore.Save(new AppData
+        {
+            MAC = mac.ToString(),
+            Nickname = nickname,
+            Port = port
+        });
         
         try
         {
@@ -78,8 +101,15 @@ public partial class MainWindow : Window
         
         StartupPanel.IsVisible = false;
         ChatPanel.IsVisible = true;
-        
-        InputBox.Focus();
+        FocusTextBox(InputBox);
+    }
+    private static void FocusTextBox(TextBox textBox)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            textBox.Focus();
+            textBox.CaretIndex = textBox.Text?.Length ?? 0;
+        }, DispatcherPriority.Background);
     }
 
     private void AddMessage(string message, MessageType type)
@@ -140,9 +170,37 @@ public class ChatMessage
     
     public IBrush Color => Type switch
     {
-        MessageType.Own => Brushes.CadetBlue,      // subtle but readable blue
-        MessageType.Remote => Brushes.DarkSeaGreen, // muted green
-        MessageType.Info => Brushes.LightSlateGray, // readable gray
-        _ => Brushes.White                          // default white
+        MessageType.Own => Brushes.CadetBlue,      
+        MessageType.Remote => Brushes.DarkSeaGreen, 
+        MessageType.Info => Brushes.LightSlateGray, 
+        _ => Brushes.White                          
     };
+}
+
+public class AppData
+{
+    public string MAC { get; init; } = "";
+    public string Nickname { get; init; } = "";
+    public int Port { get; init; } = 0;
+}
+
+public static class DataStore
+{
+    private static readonly string FilePath =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GroupChat", "config.json");
+
+    public static void Save(AppData data)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+        
+        File.WriteAllText(FilePath, JsonSerializer.Serialize(data));
+    }
+
+    public static AppData Load()
+    {
+        if (!File.Exists(FilePath))
+            return new AppData(); 
+        
+        return JsonSerializer.Deserialize<AppData>(File.ReadAllText(FilePath)) ?? new AppData();
+    }
 }

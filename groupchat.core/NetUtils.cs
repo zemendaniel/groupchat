@@ -6,11 +6,12 @@ namespace groupchat.core;
 
 public class AdapterInfo
 {
-    public string Name { get; set; } = "";
-    public string Description { get; set; } = "";
-    public IPAddress? IP { get; set; }
-    public IPAddress? Mask { get; set; }
-    public IPAddress? Broadcast { get; set; }
+    public required string Name { get; init; } = "";
+    public required string Description { get; init; } = "";
+    public required IPAddress IP { get; init; }
+    public required IPAddress Mask { get; init; }
+    public required IPAddress Broadcast { get; init; }
+    public required PhysicalAddress MAC { get; init; }
     public override string ToString() => $"{Name} ({Description}) - {IP}";
 }
 
@@ -45,7 +46,8 @@ public static class NetUtils
                     Description = ni.Description,
                     IP = ip,
                     Mask = mask,
-                    Broadcast = broadcast
+                    Broadcast = broadcast,
+                    MAC = ni.GetPhysicalAddress()
                 });
             }
         }
