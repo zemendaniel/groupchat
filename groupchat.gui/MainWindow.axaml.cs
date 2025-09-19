@@ -1,5 +1,5 @@
-using System;
 using System.Collections.ObjectModel;
+using System.Net.Sockets;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -9,7 +9,7 @@ using groupchat.core;
 
 namespace groupchat.gui;
 
-// todo: save last nic and last key to file, do symmetric encryption, check for already running process
+// todo: save last nic and last key to file, do symmetric encryption
 
 public partial class MainWindow : Window
 {
@@ -38,9 +38,13 @@ public partial class MainWindow : Window
     
     private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
+        ErrorText.Text = "";
         var nickname = NicknameBox.Text?.Trim();
         if (string.IsNullOrWhiteSpace(nickname))
+        {
+            ErrorText.Text = "[ERROR] Nickname is empty.";
             return;
+        }
 
         if (AdapterComboBox.SelectedItem is not AdapterInfo selectedAdapter)
             return;
@@ -48,16 +52,22 @@ public partial class MainWindow : Window
         var ip = selectedAdapter.IP;
         var broadcast = selectedAdapter.Broadcast;
         
+        try
+        {
+            chat = new Chat(
+                (message, type) => Dispatcher.UIThread.Post(() => { AddMessage(message, type); }),
+                nickname, broadcast!, ip!
+            );
+        }
+        catch (SocketException ex) when (ex.ErrorCode == 10048) // port already used
+        {
+            ErrorText.Text = $"[ERROR] Port {Chat.Port} is already in use. Have you already started the application?";
+            return;
+        }
+        
         StartupPanel.IsVisible = false;
         ChatPanel.IsVisible = true;
         
-        chat = new Chat(
-            (message, type) => Dispatcher.UIThread.Post(() =>
-            {
-                AddMessage(message, type);
-            }),
-            nickname, broadcast!, ip!
-        );
         InputBox.Focus();
     }
 

@@ -13,6 +13,7 @@
     
     <Application.Resources>
         <FontFamily x:Key="SpaceMonoFont">avares://groupchat.gui/Assets/Fonts/#Space Mono</FontFamily>
+            
     </Application.Resources>
     
 </Application>

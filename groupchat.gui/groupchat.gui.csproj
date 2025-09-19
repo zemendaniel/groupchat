@@ -6,6 +6,8 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+	<ApplicationIcon>Assets/sigma.ico</ApplicationIcon>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\groupchat.core\groupchat.core.csproj" />
+    <ProjectReference Include="../groupchat.core/groupchat.core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <AvaloniaResource Include="Assets\Fonts\SpaceMono-*.ttf"/>
+    <AvaloniaResource Include="Assets/Fonts/SpaceMono-*.ttf"/>
+	<AvaloniaResource Include="Assets/sigma.png" />
+	<AvaloniaResource Include="Assets/sigma.ico" />
 </ItemGroup>
+
 </Project>

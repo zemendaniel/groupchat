@@ -16,30 +16,25 @@ public delegate void ReceiveDelegate(string message, MessageType type);
 
 public class Chat
 {
-    private const int port = 29999;
     private string name;
     private static UdpClient client;
     private CancellationTokenSource cts;
     private CancellationToken token;
     private IPAddress ip;
     private IPAddress broadcast;
-    private StringBuilder inputBuffer;
     private ReceiveDelegate receiveCallback;
+
+    public static int Port { get; } = 29999;
     
     public Chat(ReceiveDelegate receiveCallback, string name, IPAddress broadcast, IPAddress ip)
     {
         this.receiveCallback = receiveCallback;
         this.name = name;
-        
-        client = new UdpClient(port);
+        client = new UdpClient(Port);
         cts = new CancellationTokenSource();
         token = cts.Token;
-        inputBuffer = new StringBuilder();
         this.broadcast = broadcast;
         this.ip = ip;
-        
-        // Console.WriteLine($"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}");
-        // receiveCallback(FormatMessage("info", $"IP: {ip} | Mask: {mask} | Broadcast: {broadcast}"), MessageType.Info);
         
         _ = Task.Run(ReceiveAsync, token);
     }
@@ -76,7 +71,7 @@ public class Chat
         var data = Encoding.UTF8.GetBytes(json);
         receiveCallback(FormatMessage(name, msg), MessageType.Own);
         Console.WriteLine();
-        await client.SendAsync(data, data.Length, new IPEndPoint(broadcast, port));
+        await client.SendAsync(data, data.Length, new IPEndPoint(broadcast, Port));
     }
 
     public async Task Dispose()
