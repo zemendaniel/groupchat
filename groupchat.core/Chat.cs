@@ -1,7 +1,5 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace groupchat.core;
@@ -25,7 +23,6 @@ public class Chat
     private readonly IPAddress broadcast;
     private readonly ReceiveDelegate receiveCallback;
     private readonly Encryption encryption;
-    private readonly string password;
 
     private int Port
     {
