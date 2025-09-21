@@ -61,24 +61,40 @@
             <!-- Nickname label -->
             <TextBlock Text="Enter your nickname:"
                        Foreground="White"
-                       Margin="5"
+                       Margin="0, 0, 0, 5"
                        HorizontalAlignment="Center"/>
 
             <!-- Nickname input -->
             <TextBox x:Name="NicknameBox"
                      HorizontalContentAlignment="Center"
                      MaxLength="32"
-                     Width="310"
-                     Margin="0,5,0,30"
+                     Width="300"
+                     Margin="0,5,0,20"
                      Background="Black"
                      Foreground="White"
                      HorizontalAlignment="Stretch"
-                     KeyDown="NicknameBox_OnKeyDown"/>
+                     KeyDown="NicknameBox_OnKeyDown">
+            </TextBox>
+            
+            <!-- password part -->
+            <TextBlock Text="Enter your password:" HorizontalAlignment="Center" Margin="0, 0, 0, 5"/>
+            <TextBox x:Name="PasswordBox" PasswordChar="*" Watermark="Optional..." Foreground="White" 
+                     HorizontalContentAlignment="Center" MaxLength="32" Width="330" Margin="0, 0, 0 ,20"
+                     KeyDown="ShowPasswordButton_OnKeyDown">
+                <TextBox.InnerRightContent>
+                    <Button
+                        x:Name="ShowPasswordButton"
+                        Width="35"
+                        HorizontalContentAlignment="Center"
+                        Click="ShowPasswordButton_Click">○
+                    </Button>
+                </TextBox.InnerRightContent>
+            </TextBox>
 
             <!-- Network adapter label -->
             <TextBlock Text="Select network adapter:"
                        HorizontalAlignment="Center"
-                       Margin="0,0,0,10"
+                       Margin="0,0,0,5"
                        Foreground="White"/>
 
             <!-- Adapter ComboBox -->
@@ -87,7 +103,8 @@
                       Background="Black"
                       Foreground="White"
                       HorizontalContentAlignment="Center"
-                      HorizontalAlignment="Center">
+                      HorizontalAlignment="Center"
+                      Margin="0, 0, 0, 20">
                 <ComboBox.Styles>
                     <Style Selector="ComboBoxItem">
                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -95,10 +112,8 @@
                 </ComboBox.Styles>
             </ComboBox>
 
-            <!-- Spacer for visual separation -->
-            <TextBlock Text="Select port" Margin="10" Foreground="White" HorizontalAlignment="Center"/>
-
             <!-- Port selector -->
+            <TextBlock Text="Select port" Margin="0, 0, 0, 5" Foreground="White" HorizontalAlignment="Center"/>
             <NumericUpDown x:Name="PortSelector"
                            Minimum="1"
                            Maximum="65535"
@@ -109,15 +124,15 @@
                            HorizontalAlignment="Center"
                            Foreground="White"
                            FormatString="0"
+                           Margin="0, 0, 0, 20"
                            />
-
-
+            
             <!-- Start button -->
             <Button Content="Start Chat"
                     x:Name="StartChatButton"
                     Click="StartChat_Click"
                     HorizontalAlignment="Center"
-                    Margin="0,20,0,0"/>
+                    Margin="0,0,0,20"/>
 
             <!-- Error message -->
             <TextBlock x:Name="ErrorText"

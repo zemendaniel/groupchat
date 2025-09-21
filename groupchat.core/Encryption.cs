@@ -9,7 +9,7 @@ public class Encryption
     
     public Encryption(string password = "")   
     {
-        this.password = string.IsNullOrWhiteSpace(password) ? defaultPassword : password;
+        this.password = string.IsNullOrEmpty(password) ? defaultPassword : password;
     }
     
     public byte[] Encrypt(string plainText)

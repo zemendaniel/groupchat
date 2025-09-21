@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -14,12 +13,13 @@ using groupchat.core;
 
 namespace groupchat.gui;
 
-// todo: last key to file, do symmetric encryption
+// todo: last key to file, readme
 
 public partial class MainWindow : Window
 {
     private Chat? chat;
     private readonly ObservableCollection<ChatMessage> messages = [];
+    private bool isPasswordShown;
     
     public MainWindow()
     {
@@ -59,6 +59,8 @@ public partial class MainWindow : Window
             ErrorText.Text = "[ERROR] Nickname is empty.";
             return;
         }
+
+        var password = PasswordBox.Text;
         
         if (PortSelector.Value == null)
         {
@@ -67,7 +69,7 @@ public partial class MainWindow : Window
         }
 
         var port = (int)PortSelector.Value;
-        if (port < 1 || port > 65535)
+        if (port is < 1 or > 65535)
         {
             ErrorText.Text = "[ERROR] Port is not in valid range (1-65535).";
         }
@@ -90,7 +92,7 @@ public partial class MainWindow : Window
         {
             chat = new Chat(
                 (message, type) => Dispatcher.UIThread.Post(() => { AddMessage(message, type); }),
-                nickname, broadcast!, ip!, port
+                nickname, broadcast, ip, port, password!
             );
         }
         catch (SocketException ex) when (ex.ErrorCode == 10048) // port already used
@@ -160,7 +162,19 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter)
             StartChat_Click(sender, e);
     }
-    
+
+    private void ShowPasswordButton_Click(object? sender, RoutedEventArgs e)
+    {
+        isPasswordShown = !isPasswordShown;
+        PasswordBox.PasswordChar = isPasswordShown ? '\0' : '*';
+        ShowPasswordButton.Content = isPasswordShown ? "●" : "○";
+    }
+
+    private void ShowPasswordButton_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+            StartChat_Click(sender, e);
+    }
 }
 
 public class ChatMessage
@@ -181,7 +195,7 @@ public class AppData
 {
     public string MAC { get; init; } = "";
     public string Nickname { get; init; } = "";
-    public int Port { get; init; } = 0;
+    public int Port { get; init; }
 }
 
 public static class DataStore
