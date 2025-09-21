@@ -7,7 +7,8 @@
         Background="Black"
         SystemDecorations="None"
         CanResize="True"
-        FontFamily="{StaticResource SpaceMonoFont}">
+        FontFamily="{StaticResource SpaceMonoFont}"
+        WindowStartupLocation="CenterScreen">
 
     <Grid RowDefinitions="Auto,*">
         <Border Background="#222" Height="30" PointerPressed="TitleBar_PointerPressed">
