@@ -172,7 +172,7 @@
     <Window.DataTemplates>
         <DataTemplate DataType="{x:Type gui:ChatMessage}">
             <StackPanel Margin="2">
-                <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" TextWrapping="Wrap"/>
+                <SelectableTextBlock Text="{Binding Text}" Foreground="{Binding Color}" TextWrapping="Wrap"/>
             </StackPanel>
         </DataTemplate>
     </Window.DataTemplates>
