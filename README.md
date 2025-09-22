@@ -2,7 +2,7 @@
 
 [![Download Now](https://img.shields.io/badge/Download%20Now-%23007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zemendaniel/groupchat/releases/latest)
 
-A fast, lightweight, cross‑platform LAN group chat application built with .NET and Avalonia. Simple to set up, easy to use, and designed to work on Windows, macOS, and Linux. Perfect for chatting in a school class room for example, or quickly sending a hyperlink to a co-worker.
+A fast, lightweight, cross‑platform LAN group chat application built with .NET and Avalonia. Simple to set up, easy to use, and designed to work on Windows, macOS, and Linux. Perfect for chatting in a school class room, or quickly sending a link to a co-worker.
 
 ### If you like this project, please star this repo :)
 
@@ -46,9 +46,9 @@ Platform-specific note:
 3. Run the file: `./GroupChat-linux-x64`
 
 ### MacOS
-1. Download GroupChat-osx-x64 (Intel) or GroupChat-osx-arm64 (Apple Silicon) from Releases.
-2. Make the file executable: `chmod +x GroupChat-osx-x64` or `chmod +x GroupChat-osx-arm64`
-3. Run the file: `./GroupChat-osx-x64` or `./GroupChat-osx-arm64`
+1. Download GroupChat-osx-arm64 (Apple Silicon) from Releases.
+2. Make the file executable: `chmod +x GroupChat-osx-arm64`
+3. Run the file: `./GroupChat-osx-arm64`
 
 If you need other versions (like 32 bit or ARM) feel free to ask me to publish them. Or if you don't trust the binaries, you can build GroupChat yourself. For that you will need to download and install the .NET 9 SDK. Then, you can run the following command in the root directory of the project:
 `dotnet publish groupchat.gui/groupchat.gui.csproj -c Release -r <YOUR RELEASE HERE (eg. win-x64)> --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
