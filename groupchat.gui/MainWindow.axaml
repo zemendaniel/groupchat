@@ -14,9 +14,9 @@
         <Border Background="#222" Height="30" PointerPressed="TitleBar_PointerPressed">
             <Grid ColumnDefinitions="*,Auto,Auto, Auto">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6">
-                    <Image Width="16" Height="16" Source="avares://groupchat.gui/Assets/sigma.png" VerticalAlignment="Center" Margin="2 0"/>
                     <TextBlock Text="Group Chat" VerticalAlignment="Center" 
-                               Foreground="White" FontWeight="DemiBold" Margin="4,0,0,0"/>
+                               Foreground="White" Margin="2,0,0,0"/>
+                    <Image Width="16" Height="16" Source="avares://groupchat.gui/Assets/sigma.png" VerticalAlignment="Center" Margin="6 0"/>
                 </StackPanel>
                 
                 <!-- Minimize button -->
