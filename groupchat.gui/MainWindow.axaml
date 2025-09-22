@@ -152,13 +152,13 @@
                               x:Name="MessagesScrollViewer"
                               Background="Black"
                               VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled"
-                              Margin="3">
+                              HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="MessagesList"
                                   Background="Black"
                                   Foreground="White"
                                   HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch">
+                                  VerticalAlignment="Stretch"
+                                  Margin="8, 3">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel />
@@ -177,7 +177,7 @@
                          Foreground="White"
                          HorizontalAlignment="Stretch"
                          VerticalAlignment="Bottom"
-                         Margin="3"
+                         Margin="8, 3"
                          TextWrapping="Wrap"
                          KeyDown="InputBox_OnKeyDown"/>
                 
@@ -188,7 +188,7 @@
     <Window.DataTemplates>
         <DataTemplate DataType="{x:Type gui:ChatMessage}">
             <StackPanel Margin="2">
-                <SelectableTextBlock Text="{Binding Text}" Foreground="{Binding Color}" TextWrapping="Wrap"/>
+                <SelectableTextBlock SelectionBrush="White" Text="{Binding Text}" Foreground="{Binding Color}" TextWrapping="Wrap"/>
             </StackPanel>
         </DataTemplate>
     </Window.DataTemplates>

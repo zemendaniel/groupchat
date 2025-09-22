@@ -6,6 +6,11 @@ public class Encryption
 {
     private const string defaultPassword = "k9GsDFy;FJlZi1}R)q=>OisYLCdWKJ";    // Hard coded default password, not secure, but better than nothing
     private readonly string password;
+    private const int SaltSize = 16;       // bytes
+    private const int NonceSize = 12;      // bytes, this is like IV
+    private const int TagSize = 16;        // bytes, verify correct password was used
+    private const int KeySize = 32;        // 256-bit key
+    private const int Iterations = 200_000; // iterations
     
     public Encryption(string password = "")   
     {

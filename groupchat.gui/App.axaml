@@ -9,6 +9,7 @@
             <Setter Property="BorderBrush" Value="White" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
+        
     </Application.Styles>
     
     <Application.Resources>
