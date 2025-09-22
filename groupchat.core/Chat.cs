@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 
 namespace groupchat.core;
@@ -22,7 +23,8 @@ public class Chat
     private readonly IPAddress ip;
     private readonly IPAddress broadcast;
     private readonly ReceiveDelegate receiveCallback;
-    private readonly Encryption encryption;
+    private readonly Encryption? encryption;
+    private readonly bool isEncrypted;
 
     private int Port
     {
@@ -41,7 +43,14 @@ public class Chat
         this.receiveCallback = receiveCallback;
         this.name = name;
         client = new UdpClient(Port);
-        encryption = new Encryption(password);
+        if (string.IsNullOrEmpty(password))
+            isEncrypted = false;
+        else
+        {
+            encryption = new Encryption(password);
+            isEncrypted = true;
+        }
+
         cts = new CancellationTokenSource();
         token = cts.Token;
         this.broadcast = broadcast;
@@ -73,7 +82,7 @@ public class Chat
             string json;
             try
             {
-                json = encryption.Decrypt(result.Buffer);
+                json = isEncrypted ? encryption!.Decrypt(result.Buffer) : Encoding.UTF8.GetString(result.Buffer);
             }
             catch { continue; } // Ignore bad UTF-8 or wrong password
             
@@ -97,13 +106,12 @@ public class Chat
             return;
         
         var json = JsonSerializer.Serialize(new Message { Sender = name, Msg = msg });
-        var data = encryption.Encrypt(json);
+        var data = isEncrypted ? encryption!.Encrypt(json) : Encoding.UTF8.GetBytes(json);
         receiveCallback(FormatMessage(name, msg), MessageType.Own);
-        Console.WriteLine();
         await client.SendAsync(data, data.Length, new IPEndPoint(broadcast, Port));
     }
 
-    public async Task Dispose()
+    public async Task DisposeAsync()
     {
         await cts.CancelAsync();
     }

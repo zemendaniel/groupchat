@@ -1,4 +1,7 @@
-﻿namespace groupchat.core;
+﻿using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+
+namespace groupchat.core;
 using System.Text.Json;
 
 public class AppData
@@ -16,30 +19,73 @@ public static class DataStore
 
     public static void Save(AppData data, string? password = null)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        
-        if (!string.IsNullOrEmpty(password))
+        var directory = Path.GetDirectoryName(FilePath);
+        if (directory is not null)
+            Directory.CreateDirectory(directory);
+
+        // Encrypt password if provided (Windows only)
+        if (!string.IsNullOrEmpty(password) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var encrypted = DPAPIHelper.Protect(password);
             data.EncryptedPassword = Convert.ToBase64String(encrypted);
         }
+
+        var json = JsonSerializer.Serialize(data);
+
+        var tempFile = Path.Combine(directory!, Path.GetRandomFileName());
         
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(data));
+        using (var fs = new FileStream(tempFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
+        using (var writer = new StreamWriter(fs))
+        {
+            writer.Write(json);
+        }
+
+        // Atomically replace
+        File.Move(tempFile, FilePath, overwrite: true);
     }
+
 
     public static (AppData Data, string Password) Load()
     {
         if (!File.Exists(FilePath))
             return (new AppData(), ""); 
         
-        var data = JsonSerializer.Deserialize<AppData>(File.ReadAllText(FilePath)) ?? new AppData();
-        var password = "";
-        if (string.IsNullOrEmpty(data.EncryptedPassword)) return (data, password);
-        
-        var encrypted = Convert.FromBase64String(data.EncryptedPassword);
-        password = DPAPIHelper.Unprotect(encrypted);
+        try
+        {
+            var json = File.ReadAllText(FilePath);
+            var data = JsonSerializer.Deserialize<AppData>(json) ?? new AppData();
 
-        return (data, password);
-        
+            // For now password saving is Windows only
+            if (string.IsNullOrEmpty(data.EncryptedPassword) || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return (data, "");
+
+            try
+            {
+                var encrypted = Convert.FromBase64String(data.EncryptedPassword);
+                var password = DPAPIHelper.Unprotect(encrypted);
+                return (data, password);
+            }
+            catch (FormatException)
+            {
+                // Corrupted base64
+                return (data, "");
+            }
+            catch (CryptographicException)
+            {
+                // Unprotect failed 
+                return (data, "");
+            }
+        }
+        catch (JsonException)
+        {
+            // Corrupted JSON
+            return (new AppData(), "");
+        }
+        catch (IOException)
+        {
+            // I/O error
+            return (new AppData(), "");
+        }
     }
+
 }

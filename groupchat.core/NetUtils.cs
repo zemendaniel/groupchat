@@ -20,13 +20,15 @@ public static class NetUtils
     public static List<AdapterInfo> GetEthernetAdapters()
     {
         var list = new List<AdapterInfo>();
+        var validInterfaces = NetworkInterface.GetAllNetworkInterfaces()
+            .Where(ni =>
+                ni is { OperationalStatus: OperationalStatus.Up, NetworkInterfaceType: NetworkInterfaceType.Ethernet or NetworkInterfaceType.Wireless80211 } &&
+                !ni.Description.Contains("virtual", StringComparison.CurrentCultureIgnoreCase) &&
+                !ni.Name.Contains("virtual", StringComparison.CurrentCultureIgnoreCase))
+            .ToList();
 
-        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        foreach (var ni in validInterfaces)
         {
-            if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
-                ni.OperationalStatus != OperationalStatus.Up)
-                continue;
-
             foreach (var info in ni.GetIPProperties().UnicastAddresses)
             {
                 if (info.Address.AddressFamily != AddressFamily.InterNetwork) continue;

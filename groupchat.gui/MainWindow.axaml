@@ -78,8 +78,8 @@
             
             <!-- password part -->
             <TextBlock Text="Enter your password:" HorizontalAlignment="Center" Margin="0, 0, 0, 5"/>
-            <TextBox x:Name="PasswordBox" PasswordChar="*" Watermark="Optional..." Foreground="White" 
-                     HorizontalContentAlignment="Center" MaxLength="32" Width="330" Margin="0, 0, 0 ,20"
+            <TextBox x:Name="PasswordBox" PasswordChar="*" Watermark="Password is optional. Without it, your communication will not be secure." Foreground="White" 
+                     HorizontalContentAlignment="Center" MaxLength="64" Width="680" Margin="0, 0, 0 ,20"
                      KeyDown="ShowPasswordButton_OnKeyDown">
                 <TextBox.InnerRightContent>
                     <Button

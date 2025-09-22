@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
-using System.Text.Json;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Net.Sockets;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -13,7 +11,7 @@ using groupchat.core;
 
 namespace groupchat.gui;
 
-// todo: last key to file, readme
+// todo: readme
 
 public partial class MainWindow : Window
 {
@@ -37,10 +35,17 @@ public partial class MainWindow : Window
         MessagesList.ItemsSource = messages;
         AdapterComboBox.ItemsSource = adapters;
 
-        Closing += async (s, e) =>
+        Closing += (s, e) =>
         {
             if (chat == null) return;
-            await chat.Dispose();
+            try
+            {
+                _ = chat.DisposeAsync();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         };
 
         Opened += (_, _) =>
@@ -73,10 +78,14 @@ public partial class MainWindow : Window
         if (port is < 1 or > 65535)
         {
             ErrorText.Text = "[ERROR] Port is not in valid range (1-65535).";
+            return;       
         }
-        
+
         if (AdapterComboBox.SelectedItem is not AdapterInfo selectedAdapter)
+        {
+            ErrorText.Text = "[ERROR] No network adapter was found.";
             return;
+        }
 
         var ip = selectedAdapter.IP;
         var broadcast = selectedAdapter.Broadcast;
@@ -93,10 +102,10 @@ public partial class MainWindow : Window
         {
             chat = new Chat(
                 (message, type) => Dispatcher.UIThread.Post(() => { AddMessage(message, type); }),
-                nickname, broadcast, ip, port, password!
+                nickname, broadcast, ip, port, password ?? ""
             );
         }
-        catch (SocketException ex) when (ex.ErrorCode == 10048) // port already used
+        catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
         {
             ErrorText.Text = $"[ERROR] Port {port} is already in use. Have you already started the application?";
             return;

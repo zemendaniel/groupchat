@@ -5,26 +5,25 @@ namespace groupchat.core;
 
 public class Encryption
 {
-    private const string defaultPassword = "k9GsDFy;FJlZi1}R)q=>OisYLCdWKJ";    // Hard coded default password, not secure, but better than nothing
     private readonly string password;
     private const int SaltSize = 16;       // bytes
     private const int NonceSize = 12;      // bytes, this is like IV
-    private const int TagSize = 16;        // bytes, verify correct password was used
+    private const int TagSize = 16;        // bytes, verify that the correct password was used
     private const int KeySize = 32;        // 256-bit key
-    private const int Iterations = 200_000; // iterations
-    const int cipherOffset = SaltSize + NonceSize;
+    private const int Iterations = 200_000; // iterations to slow down brute force attacks
+    private const int CipherOffset = SaltSize + NonceSize;
     
     public Encryption(string password = "")   
     {
-        this.password = string.IsNullOrEmpty(password) ? defaultPassword : password;
+        if (string.IsNullOrEmpty(password))
+            throw new ArgumentException("Password cannot be empty.", nameof(password));
+        this.password = password;
     }
     
     private byte[] DeriveKey(byte[] salt)
     {
-        var key = new byte[KeySize];
         using var derive = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
-        derive.GetBytes(KeySize).CopyTo(key, 0);
-        return key;
+        return derive.GetBytes(KeySize);
     }
     
     public byte[] Encrypt(string plainText)
@@ -77,21 +76,22 @@ public class Encryption
         var nonce = new byte[NonceSize];
         Buffer.BlockCopy(data, SaltSize, nonce, 0, NonceSize);
 
-        var cipherLength = data.Length - cipherOffset - TagSize;
+        var cipherLength = data.Length - CipherOffset - TagSize;
         if (cipherLength < 0) throw new ArgumentException("Invalid encrypted data length.", nameof(data));
 
         var ciphertext = new byte[cipherLength];
-        Buffer.BlockCopy(data, cipherOffset, ciphertext, 0, cipherLength);
+        Buffer.BlockCopy(data, CipherOffset, ciphertext, 0, cipherLength);
 
         var tag = new byte[TagSize];
-        Buffer.BlockCopy(data, cipherOffset + cipherLength, tag, 0, TagSize);
+        Buffer.BlockCopy(data, CipherOffset + cipherLength, tag, 0, TagSize);
 
         // Derive key
         var key = DeriveKey(salt);
 
+        byte[]? plainBytes = null;
         try
         {
-            var plainBytes = new byte[cipherLength];
+            plainBytes = new byte[cipherLength];
             using (var aes = new AesGcm(key, tag.Length))
             {
                 aes.Decrypt(nonce, ciphertext, tag, plainBytes);
@@ -102,6 +102,8 @@ public class Encryption
         finally
         {
             CryptographicOperations.ZeroMemory(key);
+            if (plainBytes != null)
+                CryptographicOperations.ZeroMemory(plainBytes);
         }
     }
 }
