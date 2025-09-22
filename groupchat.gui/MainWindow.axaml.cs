@@ -25,10 +25,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        var config = DataStore.Load();
+        var (config, password) = DataStore.Load();
         var adapters = NetUtils.GetEthernetAdapters();
 
         NicknameBox.Text = config.Nickname;
+        PasswordBox.Text = password;
         PortSelector.Value = config.Port == 0 ? 29999 : config.Port;
         AdapterComboBox.SelectedItem = adapters.FirstOrDefault(a => a.MAC.ToString() == config.MAC) 
                                        ?? adapters.FirstOrDefault();
@@ -86,7 +87,7 @@ public partial class MainWindow : Window
             MAC = mac.ToString(),
             Nickname = nickname,
             Port = port
-        });
+        }, password);
         
         try
         {
@@ -191,30 +192,3 @@ public class ChatMessage
     };
 }
 
-public class AppData
-{
-    public string MAC { get; init; } = "";
-    public string Nickname { get; init; } = "";
-    public int Port { get; init; }
-}
-
-public static class DataStore
-{
-    private static readonly string FilePath =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GroupChat", "config.json");
-
-    public static void Save(AppData data)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(data));
-    }
-
-    public static AppData Load()
-    {
-        if (!File.Exists(FilePath))
-            return new AppData(); 
-        
-        return JsonSerializer.Deserialize<AppData>(File.ReadAllText(FilePath)) ?? new AppData();
-    }
-}
