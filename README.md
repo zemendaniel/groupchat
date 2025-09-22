@@ -2,7 +2,7 @@
 
 [![Download Now](https://img.shields.io/badge/Download%20Now-%23007ACC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zemendaniel/groupchat/releases/latest)
 
-A fast, lightweight, cross‑platform LAN group chat application built with .NET and Avalonia. Simple to set up, easy to use, and designed to work on Windows, macOS, and Linux.
+A fast, lightweight, cross‑platform LAN group chat application built with .NET and Avalonia. Simple to set up, easy to use, and designed to work on Windows, macOS, and Linux. Perfect for chatting in a school class room for example, or quickly sending a hyperlink to a co-worker.
 
 ### If you like this project, please star this repo :)
 
@@ -38,7 +38,7 @@ Platform-specific note:
 1. Download GroupChat-win-x64.exe (64 bit) from Releases.
 2. Double‑click to run.
 3. Windows Defender will think the app is a virus, but it's not. Just click 'More Info' and 'Run Anyway'
-4. Windows will ask you to allow the app through your firewall. Click 'Allow Access'.
+4. Windows will ask you to allow the app through your firewall. Click 'Allow Access'. But if you click cancel (because you don't have admin privileges) the app should still work as expected. (Sometimes only after you have also sent a message.)
 
 ### Linux
 1. Download GroupChat-linux-x64 from Releases.
