@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Text;
+using System.Security.Cryptography;
 
 namespace groupchat.core;
 
@@ -11,53 +12,96 @@ public class Encryption
     private const int TagSize = 16;        // bytes, verify correct password was used
     private const int KeySize = 32;        // 256-bit key
     private const int Iterations = 200_000; // iterations
+    const int cipherOffset = SaltSize + NonceSize;
     
     public Encryption(string password = "")   
     {
         this.password = string.IsNullOrEmpty(password) ? defaultPassword : password;
     }
     
+    private byte[] DeriveKey(byte[] salt)
+    {
+        var key = new byte[KeySize];
+        using var derive = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
+        derive.GetBytes(KeySize).CopyTo(key, 0);
+        return key;
+    }
+    
     public byte[] Encrypt(string plainText)
     {
-        using var aes = Aes.Create();
-        aes.Key = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(password));
-        aes.Mode = CipherMode.CBC;
-        aes.Padding = PaddingMode.PKCS7;
+        ArgumentException.ThrowIfNullOrEmpty(plainText);
 
-        aes.GenerateIV();   // Cleaner to generate new AES each time
-        // 16 bytes
-        var iv = aes.IV;    // Two identical messages will result in different ciphertexts
+        var plainBytes = Encoding.UTF8.GetBytes(plainText);
 
-        using var encryptor = aes.CreateEncryptor(aes.Key, iv);
-        var plainBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-        var cipherBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+        // Generate salt + nonce
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var nonce = RandomNumberGenerator.GetBytes(NonceSize);
         
-        var result = new byte[16 + cipherBytes.Length];  // Prepend IV
-        Buffer.BlockCopy(iv, 0, result, 0, iv.Length);
-        Buffer.BlockCopy(cipherBytes, 0, result, iv.Length, cipherBytes.Length);
+        var key = DeriveKey(salt);
 
-        return result;
+        try
+        {
+            var ciphertext = new byte[plainBytes.Length];
+            var tag = new byte[TagSize];
+
+            using (var aes = new AesGcm(key, tag.Length))
+            {
+                aes.Encrypt(nonce, plainBytes, ciphertext, tag);
+            }
+
+            var output = new byte[SaltSize + NonceSize + ciphertext.Length + TagSize];
+            Buffer.BlockCopy(salt, 0, output, 0, SaltSize);
+            Buffer.BlockCopy(nonce, 0, output, SaltSize, NonceSize);
+            Buffer.BlockCopy(ciphertext, 0, output, SaltSize + NonceSize, ciphertext.Length);
+            Buffer.BlockCopy(tag, 0, output, SaltSize + NonceSize + ciphertext.Length, TagSize);
+
+            return output;
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(plainBytes);
+        }
     }
 
     public string Decrypt(byte[] data)
     {
-        if (data.Length < 16) // IV is 16 bytes
-            throw new ArgumentException("Invalid encrypted data");
+        ArgumentNullException.ThrowIfNull(data);
+        if (data.Length < SaltSize + NonceSize + TagSize)
+            throw new ArgumentException("Invalid encrypted data.", nameof(data));
 
-        var iv = new byte[16];
-        var cipherBytes = new byte[data.Length - 16];
+        // Split parts
+        var salt = new byte[SaltSize];
+        Buffer.BlockCopy(data, 0, salt, 0, SaltSize);
 
-        Buffer.BlockCopy(data, 0, iv, 0, 16);
-        Buffer.BlockCopy(data, 16, cipherBytes, 0, cipherBytes.Length);
+        var nonce = new byte[NonceSize];
+        Buffer.BlockCopy(data, SaltSize, nonce, 0, NonceSize);
 
-        using var aes = Aes.Create();
-        aes.Key = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(password));
-        aes.IV = iv;
-        aes.Mode = CipherMode.CBC;
-        aes.Padding = PaddingMode.PKCS7;
+        var cipherLength = data.Length - cipherOffset - TagSize;
+        if (cipherLength < 0) throw new ArgumentException("Invalid encrypted data length.", nameof(data));
 
-        using var decrypter = aes.CreateDecryptor();
-        var plainBytes = decrypter.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
-        return System.Text.Encoding.UTF8.GetString(plainBytes);
-    } 
+        var ciphertext = new byte[cipherLength];
+        Buffer.BlockCopy(data, cipherOffset, ciphertext, 0, cipherLength);
+
+        var tag = new byte[TagSize];
+        Buffer.BlockCopy(data, cipherOffset + cipherLength, tag, 0, TagSize);
+
+        // Derive key
+        var key = DeriveKey(salt);
+
+        try
+        {
+            var plainBytes = new byte[cipherLength];
+            using (var aes = new AesGcm(key, tag.Length))
+            {
+                aes.Decrypt(nonce, ciphertext, tag, plainBytes);
+            }
+
+            return Encoding.UTF8.GetString(plainBytes);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(key);
+        }
+    }
 }
