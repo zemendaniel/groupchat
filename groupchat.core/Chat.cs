@@ -55,13 +55,23 @@ public class Chat
         token = cts.Token;
         this.broadcast = broadcast;
         this.ip = ip;
-        
+
+        _ = Task.Run(HolePunchAsync, token);
         _ = Task.Run(ReceiveAsync, token);
     }
     
     private static string FormatMessage(string sender, string message)
     {
         return $"[{sender.ToUpper()}]: {message}";
+    }
+
+    private async Task HolePunchAsync()
+    {
+        while (!token.IsCancellationRequested)
+        {
+            await client.SendAsync([], 0, new IPEndPoint(broadcast, Port));
+            await Task.Delay(1000 * 10, token);
+        }
     }
     
     private async Task ReceiveAsync()
@@ -77,6 +87,9 @@ public class Chat
             catch { continue; }
 
             if (Equals(result.RemoteEndPoint.Address, ip))
+                continue;
+            
+            if (result.Buffer.Length == 0)
                 continue;
 
             string json;
