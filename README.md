@@ -4,6 +4,7 @@
 
 A fast, lightweight, cross‑platform LAN group chat application built with .NET and Avalonia. Simple to set up, easy to use, and designed to work on Windows, macOS, and Linux. Perfect for chatting in a school class room, or quickly sending a link to a co-worker.
 
+### Works without requiring admin privileges. On the same subnet, the app functions even if it isn’t explicitly allowed through the firewall.
 ### If you like this project, please star this repo :)
 
 ## Table of Contents
@@ -37,8 +38,8 @@ Platform-specific note:
 ### Windows
 1. Download GroupChat-win-x64.exe (64 bit) from Releases.
 2. Double‑click to run.
-3. Windows Defender will think the app is a virus, but it's not. Just click 'More Info' and 'Run Anyway'
-4. Windows will ask you to allow the app through your firewall. Click 'Allow Access'. But if you click cancel (because you don't have admin privileges) the app should still work as expected. (Sometimes only after you have also sent a message.)
+3. Windows Defender will think the app is a virus, but it's not. Just click 'More Info' and 'Run Anyway'.
+4. Windows may prompt you to allow the app through the firewall. Clicking ‘Allow Access’ is optional — if you cancel (e.g., without admin privileges), the app will still function normally.
 
 ### Linux
 1. Download GroupChat-linux-x64 from Releases.
@@ -50,18 +51,18 @@ Platform-specific note:
 2. Make the file executable: `chmod +x GroupChat-osx-arm64`
 3. Run the file: `./GroupChat-osx-arm64`
 
-If you need other versions (like 32 bit or ARM) feel free to ask me to publish them. Or if you don't trust the binaries, you can build GroupChat yourself. For that you will need to download and install the .NET 9 SDK. Then, you can run the following command in the root directory of the project:
-`dotnet publish groupchat.gui/groupchat.gui.csproj -c Release -r <YOUR RELEASE HERE (eg. win-x64)> --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
-`
+If you need other versions (like 32 bit or ARM) feel free to ask me to publish them. Or if you don't trust the binaries, you can build GroupChat yourself. For that you will need to download and install the .NET 9 SDK. Then either clone the repo or download the zip. Afer that, you can run the following command in the root directory of the project:
+`dotnet publish groupchat.gui/groupchat.gui.csproj -c Release -r <YOUR RELEASE HERE (eg. win-x64)> --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true`
+
 ## Usage
 - Enter your name and your shared password (if you have one).
 - If you have more network interfaces, you can select which one to use.
-- Select a custom port or leave it on the default port.
-- Click Start Chat or press Enter inside either the Nickname or Password textbox.
-- Now you can send messages up to 900 characters long, including emojis.
+- Select a custom port or leave the default. Make sure all participants use the same port to communicate.
+- Click Start Chat or press Enter inside either the nickname or password textbox.
+- You can now send messages up to 900 characters long, including emojis, to devices on your local subnet.
 - To send a message, press Enter.
 - You can also copy and paste messages.
-- Your configuration is saved in your user profile (AppData in Windows, Library/Application Support in macOS, and ~/.config in Linux) under the GroupChat folder.
+- Your configuration is stored in your user profile: AppData\GroupChat on Windows, ~/Library/Application Support/GroupChat on macOS, and ~/.config/GroupChat on Linux. On Windows, your password is securely saved using DPAPI in the AppData folder
 
 ## Contributing
 Contributions are welcome! To get started:
@@ -71,7 +72,6 @@ Contributions are welcome! To get started:
 
 High‑impact contribution ideas:
 - Implement secure password storage on macOS (Keychain) and Linux (e.g., libsecret).
-- Localization and accessibility improvements.
 - Packaging helpers (e.g., .desktop files, signing/notarization guidance for macOS).
 - Automated UI and integration tests.
 
