@@ -7,6 +7,11 @@ A fast, lightweight, cross‑platform LAN group chat application built with .NET
 ### Works without requiring admin privileges. On the same subnet, the app functions even if it isn’t explicitly allowed through the firewall.
 ### If you like this project, please star this repo :)
 
+<br/>
+<img width="800" height="600" alt="image" src="https://github.com/user-attachments/assets/06ddc4d7-279a-4894-97ff-6d776f9f8b2a" />
+<br/>
+<img width="800" height="600" alt="image" src="https://github.com/user-attachments/assets/ead7ea50-b326-4859-bf83-7d2aca2e2645" />
+
 ## Table of Contents
 - Features
 - How does it work?
