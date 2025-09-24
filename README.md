@@ -28,6 +28,7 @@ A fast, lightweight, cross‑platform LAN group chat application built with .NET
 - Local configuration: user settings stored per user profile.
 - Optional password for rooms/sessions (secure, encrypted communication).
 - Light on resources and quick to launch.
+- Important note: Currently, messages aren’t saved after closing the app, as I don’t believe that aligns with the app’s design or purpose. 
 
 ## How does it work?
 - The app sends UDP broadcast messages and listens for UDP broadcast messages.
@@ -86,6 +87,7 @@ High‑impact contribution ideas:
 - Signed binaries.
 - Package MasOS release with into .app
 - .desktop file for Linux
+- Optional feature for saving messages into an sqlite database or json
 
 ## Troubleshooting
 - Windows: SmartScreen warning → “More info” → “Run anyway.”
