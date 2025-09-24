@@ -29,6 +29,9 @@
     <AvaloniaResource Include="Assets/Fonts/SpaceMono-*.ttf"/>
 	<AvaloniaResource Include="Assets/sigma.png" />
 	<AvaloniaResource Include="Assets/sigma.ico" />
-</ItemGroup>
+   </ItemGroup>
 
+   <ItemGroup>
+ 	 <PackageReference Include="SkiaSharp.NativeAssets.MacOS" Version="2.88.9" />
+   </ItemGroup>
 </Project>
