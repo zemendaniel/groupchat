@@ -60,7 +60,7 @@ If you need other versions (like 32 bit or ARM) feel free to ask me to publish t
 `dotnet publish groupchat.gui/groupchat.gui.csproj -c Release -r <YOUR RELEASE HERE (eg. win-x64)> --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true`
 
 ## Usage
-- Enter your name and your shared password (if you have one).
+- Enter your name and your shared password (if you have one). Make sure all users have entered the same password, otherwise you won't be able to see each other's messages.
 - If you have more network interfaces, you can select which one to use.
 - Select a custom port or leave the default. Make sure all participants use the same port to communicate.
 - Click Start Chat or press Enter inside either the nickname or password textbox.
@@ -100,6 +100,7 @@ High‑impact contribution ideas:
 - Connection issues
     - Ensure both sides use the same port and that firewalls allow traffic.
     - Try a different port if needed.
+    - Make sure everyone has entered the same password.
 
 ## FAQ
 - Is GroupChat free?
