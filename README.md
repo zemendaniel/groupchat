@@ -52,9 +52,10 @@ Platform-specific note:
 3. Run the file: `./GroupChat-linux-x64`
 
 ### MacOS
-1. Download GroupChat-osx-arm64 (Apple Silicon) from Releases.
-2. Make the file executable: `chmod +x GroupChat-osx-arm64`
-3. Run the file: `./GroupChat-osx-arm64`
+1. Download GroupChat-osx-arm64.zip (Apple Silicon) from Releases.
+3. Extract the archive.
+3. Make the file executable: `chmod +x GroupChat-osx-arm64`
+4. Run the file: `./GroupChat-osx-arm64`
 
 If you need other versions (like 32 bit or ARM) feel free to ask me to publish them. Or if you don't trust the binaries, you can build GroupChat yourself. For that you will need to download and install the .NET 9 SDK. Then either clone the repo or download the zip. Afer that, you can run the following command in the root directory of the project:
 `dotnet publish groupchat.gui/groupchat.gui.csproj -c Release -r <YOUR RELEASE HERE (eg. win-x64)> --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true`
@@ -83,6 +84,8 @@ High‑impact contribution ideas:
 ## Roadmap
 - Secure password storage for macOS and Linux.
 - Signed binaries.
+- Package MasOS release with into .app
+- .desktop file for Linux
 
 ## Troubleshooting
 - Windows: SmartScreen warning → “More info” → “Run anyway.”
