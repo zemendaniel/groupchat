@@ -10,6 +10,7 @@ A fast, lightweight, cross‑platform LAN group chat application built with .NET
 <br/>
 <img width="800" height="600" alt="image" src="https://github.com/user-attachments/assets/06ddc4d7-279a-4894-97ff-6d776f9f8b2a" />
 <br/>
+<br/>
 <img width="800" height="600" alt="image" src="https://github.com/user-attachments/assets/ead7ea50-b326-4859-bf83-7d2aca2e2645" />
 
 ## Table of Contents
@@ -32,7 +33,7 @@ A fast, lightweight, cross‑platform LAN group chat application built with .NET
 
 ## How does it work?
 - The app sends UDP broadcast messages and listens for UDP broadcast messages.
-- If you provide a password, the app encrypts the messages with AES. All users in the room must have the same password.
+- If you provide a password, the app encrypts the messages with AES (GCM mode). All users in the room must have the same password. The password is salted and hashed with PBKDF2 and SHA-256 (200 000 iterations) before sending each message. Then an IV is injected into the message payload also before each message. Then the salt (16 bytes) + IV (12 bytes) + ciphertext + a tag (16 bytes) is broadcasted. The receivers can deconstruct the payload and decrypt the message. Messages send with the wrong password are automatically discarded.
 - The app uses the local network to communicate with other users.
 
 ## Installation
@@ -88,6 +89,7 @@ High‑impact contribution ideas:
 - Package MasOS release with into .app
 - .desktop file for Linux
 - Optional feature for saving messages into an sqlite database or json
+- Ability to send and receive files
 
 ## Troubleshooting
 - Windows: SmartScreen warning → “More info” → “Run anyway.”
