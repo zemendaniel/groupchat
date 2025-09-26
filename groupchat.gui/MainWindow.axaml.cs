@@ -2,7 +2,8 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Net.Sockets;
-using Avalonia;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -20,10 +21,14 @@ public partial class MainWindow : Window
     private Chat? chat;
     private readonly ObservableCollection<ChatMessage> messages = [];
     private bool isPasswordShown;
+    private Task? iconFlashTask;
+    private CancellationTokenSource iconFlashTaskCts = new();
+    private bool isWindowActive;
     
     public MainWindow()
     {
         InitializeComponent();
+        isWindowActive = true;
 
         var (config, password) = DataStore.Load();
         var adapters = NetUtils.GetEthernetAdapters();
@@ -55,9 +60,18 @@ public partial class MainWindow : Window
             NicknameBox.Focus();
             NicknameBox.CaretIndex = NicknameBox.Text?.Length ?? 0;
         };
+
+        Activated += async (_, _) =>
+        {
+            iconFlashTaskCts.Cancel();
+            iconFlashTaskCts = new CancellationTokenSource();
+
+            await ChangeIcon("sigma"); 
+        };
+
     }
 
-    
+
     private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
         ErrorText.Text = "";
@@ -128,9 +142,6 @@ public partial class MainWindow : Window
 
     private void AddMessage(string message, MessageType type)
     {
-        using var stream = AssetLoader.Open(new Uri("avares://groupchat.gui/Assets/sigma_urgent_red.png"));
-        Icon = new WindowIcon(stream);
-        
         var isAtBottom = MessagesScrollViewer.Offset.Y + MessagesScrollViewer.Viewport.Height >= 
                           MessagesScrollViewer.Extent.Height - 1; // small tolerance
 
@@ -146,7 +157,47 @@ public partial class MainWindow : Window
                 );
             }, DispatcherPriority.Render); 
         }
+
+        if (type != MessageType.Own && !IsActive)
+        {
+            if (iconFlashTask == null)
+                iconFlashTask = Task.Run(() => FlashIcon(iconFlashTaskCts.Token), iconFlashTaskCts.Token);
+        }
     }
+
+    private async Task FlashIcon(CancellationToken ct)
+    {
+        var icons = new[] { "sigma_urgent_orange", "sigma_urgent_red" };
+        var index = 0;
+
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                await ChangeIcon(icons[index]);
+                index = (index + 1) % icons.Length;
+                await Task.Delay(1000, ct);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            
+        }
+        finally
+        {
+            iconFlashTask = null; 
+        }
+    }
+
+    private async Task ChangeIcon(string newIcon)
+    {
+        await using var stream = AssetLoader.Open(new Uri($"avares://groupchat.gui/Assets/{newIcon}.png"));
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            Icon = new WindowIcon(stream);
+        });
+    }
+    
     private void TitleBar_PointerPressed(object sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
