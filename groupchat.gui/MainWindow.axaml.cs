@@ -23,12 +23,12 @@ public partial class MainWindow : Window
     private bool isPasswordShown;
     private Task? iconFlashTask;
     private CancellationTokenSource iconFlashTaskCts = new();
-    private bool isWindowActive;
+    private bool isUserActive;
+    private CancellationTokenSource? deactivatedDebounceCts;
     
     public MainWindow()
     {
         InitializeComponent();
-        isWindowActive = true;
 
         var (config, password) = DataStore.Load();
         var adapters = NetUtils.GetEthernetAdapters();
@@ -60,17 +60,39 @@ public partial class MainWindow : Window
             NicknameBox.Focus();
             NicknameBox.CaretIndex = NicknameBox.Text?.Length ?? 0;
         };
-
-        Activated += async (_, _) =>
+        
+        PropertyChanged += async (_, e) =>
         {
-            iconFlashTaskCts.Cancel();
-            iconFlashTaskCts = new CancellationTokenSource();
-
-            await ChangeIcon("sigma"); 
+            if (e.Property.Name != nameof(WindowState)) return;
+            if (WindowState == WindowState.Minimized)
+                OnMinimized();
+            else if (WindowState == WindowState.Normal || WindowState == WindowState.Maximized)
+                await OnRestored();
         };
-
+        LostFocus += (_, _) =>
+        {
+            OnMinimized();
+        };
+        GotFocus += async (_, _) =>
+        {
+            await OnRestored();
+        };
     }
 
+    private void OnMinimized()
+    {
+        isUserActive = false;
+        Console.WriteLine(isUserActive);
+    }
+
+    private async Task OnRestored()
+    {
+        isUserActive = true;
+        await iconFlashTaskCts.CancelAsync();
+        iconFlashTaskCts = new CancellationTokenSource();
+        Console.WriteLine(isUserActive);
+        await ChangeIcon("sigma");
+    } 
 
     private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
@@ -129,6 +151,7 @@ public partial class MainWindow : Window
         
         StartupPanel.IsVisible = false;
         ChatPanel.IsVisible = true;
+        
         FocusTextBox(InputBox);
     }
     private static void FocusTextBox(TextBox textBox)
@@ -158,8 +181,9 @@ public partial class MainWindow : Window
             }, DispatcherPriority.Render); 
         }
 
-        if (type != MessageType.Own && !IsActive)
+        if (type != MessageType.Own && !isUserActive)
         {
+            Console.WriteLine("here");
             if (iconFlashTask == null)
                 iconFlashTask = Task.Run(() => FlashIcon(iconFlashTaskCts.Token), iconFlashTaskCts.Token);
         }
