@@ -2,10 +2,12 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Net.Sockets;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using groupchat.core;
 
@@ -126,6 +128,9 @@ public partial class MainWindow : Window
 
     private void AddMessage(string message, MessageType type)
     {
+        using var stream = AssetLoader.Open(new Uri("avares://groupchat.gui/Assets/sigma_urgent_red.png"));
+        Icon = new WindowIcon(stream);
+        
         var isAtBottom = MessagesScrollViewer.Offset.Y + MessagesScrollViewer.Viewport.Height >= 
                           MessagesScrollViewer.Extent.Height - 1; // small tolerance
 
