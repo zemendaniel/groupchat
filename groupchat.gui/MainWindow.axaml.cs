@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer debounceTimer;
     private bool shouldNotify;
     private CancellationTokenSource iconFlashCts = new();
+    private readonly object flashLock = new();
     
     public MainWindow()
     {
@@ -96,32 +97,31 @@ public partial class MainWindow : Window
 
         if (!shouldNotify)
         {
-            var oldCts = iconFlashCts;
-            iconFlashCts = new CancellationTokenSource();
+            Task? taskToWait;
+            CancellationTokenSource cts;
+
+            lock (flashLock)
+            {
+                taskToWait = iconFlashTask;
+                cts = iconFlashCts;
+
+                iconFlashTask = null;
+                iconFlashCts = new CancellationTokenSource();
+            }
 
             try
             {
-                await oldCts.CancelAsync();
-                if (iconFlashTask != null)
-                    await iconFlashTask; 
-            }
-            catch (TaskCanceledException)
-            {
-                // ignore
-            }
-            catch (ObjectDisposedException)
-            {
-                // ignore
+                await cts.CancelAsync();
+                if (taskToWait != null)
+                    await taskToWait;
             }
             finally
             {
-                oldCts.Dispose();
-                iconFlashTask = null;
+                cts.Dispose();
             }
-
-            await ChangeIcon("sigma");
         }
     }
+
     
     private async Task FlashIcon(CancellationToken ct)
     {
@@ -138,8 +138,12 @@ public partial class MainWindow : Window
             }
         }
         catch (TaskCanceledException)
-        {  
+        {
             // ignore
+        }
+        finally
+        {
+            await ChangeIcon("sigma");
         }
     }
     
@@ -239,8 +243,12 @@ public partial class MainWindow : Window
         }
         if (type != MessageType.Own && shouldNotify)
         {
-            if (iconFlashTask == null)
-                iconFlashTask = Task.Run(() => FlashIcon(iconFlashCts.Token), iconFlashCts.Token);
+            lock (flashLock)
+            {
+                if (iconFlashTask == null)
+                    iconFlashTask = Task.Run(() => FlashIcon(iconFlashCts.Token), iconFlashCts.Token);
+                
+            }
         }
     }
     private void TitleBar_PointerPressed(object sender, PointerPressedEventArgs e)
