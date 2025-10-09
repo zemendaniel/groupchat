@@ -133,7 +133,7 @@ jobs:
           body: |
             Make taskbar icon flash when new message is received when Windows is not in focus
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
