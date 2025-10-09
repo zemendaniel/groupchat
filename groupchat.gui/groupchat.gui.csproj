@@ -29,6 +29,8 @@
     <AvaloniaResource Include="Assets/Fonts/SpaceMono-*.ttf"/>
 	<AvaloniaResource Include="Assets/sigma.png" />
 	<AvaloniaResource Include="Assets/sigma.ico" />
+        <AvaloniaResource Include="Assets/sigma_urgent_orange.png" />
+	<AvaloniaResource Include="Assets/sigma_urgent_red.png" />
    </ItemGroup>
 
    <ItemGroup>

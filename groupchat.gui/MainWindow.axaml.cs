@@ -2,22 +2,28 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using groupchat.core;
 
 namespace groupchat.gui;
-
-// todo: readme
 
 public partial class MainWindow : Window
 {
     private Chat? chat;
     private readonly ObservableCollection<ChatMessage> messages = [];
     private bool isPasswordShown;
+    private Task? iconFlashTask;
+    private readonly DispatcherTimer debounceTimer;
+    private bool shouldNotify;
+    private CancellationTokenSource iconFlashCts = new();
     
     public MainWindow()
     {
@@ -53,8 +59,98 @@ public partial class MainWindow : Window
             NicknameBox.Focus();
             NicknameBox.CaretIndex = NicknameBox.Text?.Length ?? 0;
         };
+        
+        debounceTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(100) // 100ms debounce
+        };
+        debounceTimer.Tick += async (_, _) =>
+        {
+            debounceTimer.Stop();
+            await UpdateUserVisibility();
+        };
+        IsActiveProperty.Changed.AddClassHandler<Window>(OnIsActiveChanged);
+        WindowStateProperty.Changed.AddClassHandler<Window>(OnWindowStateChanged);
+        Opened += async (_, _) => await UpdateUserVisibility();
+        Closed += async (_, _) => await UpdateUserVisibility();
+    }
+    private void OnIsActiveChanged(Window sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        DebounceUpdate();
     }
 
+    private void OnWindowStateChanged(Window sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        DebounceUpdate();
+    }
+
+    private void DebounceUpdate()
+    {
+        debounceTimer.Stop(); // reset timer
+        debounceTimer.Start();
+    }
+
+    private async Task UpdateUserVisibility()
+    {
+        shouldNotify = !(IsActive && WindowState != WindowState.Minimized);
+
+        if (!shouldNotify)
+        {
+            var oldCts = iconFlashCts;
+            iconFlashCts = new CancellationTokenSource();
+
+            try
+            {
+                await oldCts.CancelAsync();
+                if (iconFlashTask != null)
+                    await iconFlashTask; 
+            }
+            catch (TaskCanceledException)
+            {
+                // ignore
+            }
+            catch (ObjectDisposedException)
+            {
+                // ignore
+            }
+            finally
+            {
+                oldCts.Dispose();
+                iconFlashTask = null;
+            }
+
+            await ChangeIcon("sigma");
+        }
+    }
+    
+    private async Task FlashIcon(CancellationToken ct)
+    {
+        var icons = new[] { "sigma_urgent_orange", "sigma_urgent_red" };
+        var index = 0;
+
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                await ChangeIcon(icons[index]);
+                index = (index + 1) % icons.Length;
+                await Task.Delay(1000, ct);
+            }
+        }
+        catch (TaskCanceledException)
+        {  
+            // ignore
+        }
+    }
+    
+    private async Task ChangeIcon(string newIcon)
+    {
+        await using var stream = AssetLoader.Open(new Uri($"avares://groupchat.gui/Assets/{newIcon}.png"));
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            Icon = new WindowIcon(stream);
+        });
+    }
     
     private void StartChat_Click(object? sender, RoutedEventArgs e)
     {
@@ -140,6 +236,11 @@ public partial class MainWindow : Window
                     MessagesScrollViewer.Extent.Height - MessagesScrollViewer.Viewport.Height
                 );
             }, DispatcherPriority.Render); 
+        }
+        if (type != MessageType.Own && shouldNotify)
+        {
+            if (iconFlashTask == null)
+                iconFlashTask = Task.Run(() => FlashIcon(iconFlashCts.Token), iconFlashCts.Token);
         }
     }
     private void TitleBar_PointerPressed(object sender, PointerPressedEventArgs e)
