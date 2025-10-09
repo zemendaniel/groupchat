@@ -1,0 +1,146 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on tags like v2.2.0
+
+jobs:
+  # Windows build
+  build-win:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish Windows
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}  # Remove 'v' prefix
+          dotnet publish groupchat.gui/groupchat.gui.csproj \
+            -c Release -r win-x64 \
+            --self-contained true \
+            /p:PublishSingleFile=true \
+            /p:IncludeNativeLibrariesForSelfExtract=true \
+            /p:Version=$VERSION \
+            -o publish/win-x64
+          cp publish/win-x64/groupchat.gui.exe GroupChat-win-x64.exe
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: GroupChat-win-x64.exe
+
+  # Linux build
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish Linux
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          dotnet publish groupchat.gui/groupchat.gui.csproj \
+            -c Release -r linux-x64 \
+            --self-contained true \
+            /p:PublishSingleFile=true \
+            /p:IncludeNativeLibrariesForSelfExtract=true \
+            /p:Version=$VERSION \
+            -o publish/linux-x64
+          cp publish/linux-x64/groupchat.gui GroupChat-linux-x64
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: GroupChat-linux-x64
+
+  # macOS build
+  build-macos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Publish macOS
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          dotnet publish groupchat.gui/groupchat.gui.csproj \
+            -c Release -r osx-arm64 \
+            --self-contained true \
+            /p:PublishSingleFile=true \
+            /p:IncludeNativeLibrariesForSelfExtract=true \
+            /p:Version=$VERSION \
+            -o publish/osx-arm64
+          cd publish/osx-arm64
+          zip -r ../../GroupChat-osx-arm64.zip *
+          cd ../..
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: GroupChat-osx-arm64.zip
+
+  # Create release and upload assets
+  release:
+    needs: [build-win, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows
+          path: .
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux
+          path: .
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos
+          path: .
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            Make taskbar icon flash when new message is received when Windows is not in focus
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            GroupChat-win-x64.exe
+            GroupChat-linux-x64
+            GroupChat-osx-arm64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
